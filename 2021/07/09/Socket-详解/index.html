@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/success/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/success/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/success/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/success/images/safari-pinned-tab.svg" color="#222">
+
+<link rel="stylesheet" href="/success/css/main.css">
+
+
+<link rel="stylesheet" href="/success/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"libibin.github.io","root":"/success/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是Socket？英语：Network socket；又译网络套接字、网络接口、网络插槽）在计算机科学中是电脑网络中进程间资料流的端点。使用以网际协议（Internet Protocol）为通信基础的网络套接字，称为网际套接字（Internet socket）。因为网际协议的流行，现代绝大多数的网络套接字，都是属于网际套接字。 socket是一种操作系统提供的进程间通信机制。[1] 在操作系统中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Socket 编程">
+<meta property="og:url" content="https://libibin.github.io/success/2021/07/09/Socket-%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="梦回唐朝">
+<meta property="og:description" content="什么是Socket？英语：Network socket；又译网络套接字、网络接口、网络插槽）在计算机科学中是电脑网络中进程间资料流的端点。使用以网际协议（Internet Protocol）为通信基础的网络套接字，称为网际套接字（Internet socket）。因为网际协议的流行，现代绝大多数的网络套接字，都是属于网际套接字。 socket是一种操作系统提供的进程间通信机制。[1] 在操作系统中">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-39.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-40.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-41.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-42.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-45.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-46.png">
+<meta property="article:published_time" content="2021-07-09T11:15:10.000Z">
+<meta property="article:modified_time" content="2021-07-09T12:47:24.232Z">
+<meta property="article:author" content="Alex">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://libibin.github.io/success/images/pasted-39.png">
+
+<link rel="canonical" href="https://libibin.github.io/success/2021/07/09/Socket-%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Socket 编程 | 梦回唐朝</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/success/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">梦回唐朝</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">technology</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/success/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/success/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/success/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/success/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/09/Socket-%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Socket 编程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-09 19:15:10 / 修改时间：20:47:24" itemprop="dateCreated datePublished" datetime="2021-07-09T19:15:10+08:00">2021-07-09</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="什么是Socket？"><a href="#什么是Socket？" class="headerlink" title="什么是Socket？"></a>什么是Socket？</h4><p><font size=3>英语：Network socket；又译网络套接字、网络接口、网络插槽）在计算机科学中是电脑网络中进程间资料流的端点。使用以网际协议（Internet Protocol）为通信基础的网络套接字，称为网际套接字（Internet socket）。因为网际协议的流行，现代绝大多数的网络套接字，都是属于网际套接字。</p>
+<p>socket是一种操作系统提供的进程间通信机制。[1]</p>
+<p>在操作系统中，通常会为应用程序提供一组应用程序接口（API），称为套接字接口（英语：socket API）。应用程序可以通过套接字接口，来使用网络套接字，以进行资料交换。最早的套接字接口来自于4.2 BSD，因此现代常见的套接字接口大多源自Berkeley套接字（Berkeley sockets）标准。在套接字接口中，以IP地址及端口组成套接字地址（socket address）。远程的套接字地址，以及本地的套接字地址完成连线后，再加上使用的协议（protocol），这个五元组（five-element tuple），作为套接字对（socket pairs），之后就可以彼此交换资料。例如，在同一台计算机上，TCP协议与UDP协议可以同时使用相同的port而互不干扰。 操作系统根据套接字地址，可以决定应该将资料送达特定的行程或线程。这就像是电话系统中，以电话号码加上分机号码，来决定通话对象一般。</font>  </p>
+<span id="more"></span>
+<h4 id="socket-基本编程流程"><a href="#socket-基本编程流程" class="headerlink" title="socket 基本编程流程"></a>socket 基本编程流程</h4><p><font size=3>像我们使用的 GO 或者其他语言其实在底层是将socket 做了封装，所以我们可以很方便的使用socket 做网络编程。但是真正底层玩了个编程，基于C 或者C++ 来编程的话，是比较复杂与麻烦的。如下图：</font><br> <img src="/success/images/pasted-39.png" alt="upload successful">  </p>
+<ol>
+<li>首先我们要创建一个socket  </li>
+<li>将创建的sokcet 绑定上IP 与port  </li>
+<li>开启监听 socket 接受请求。  </li>
+<li>正式接受客户端请求  </li>
+<li>数据的收取与发送  </li>
+<li>关闭socket   </li>
+</ol>
+<ul>
+<li><strong>创建SOCKET</strong>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">  int socket(int domain,int <span class="built_in">type</span>,int protocol)</span><br><span class="line"><span class="comment">#创建一个socket 并返回其描述符，该描述符和文件描述符没什么区别。如果我们的进程没有Open 其他文件的话，那么该调用函数应该会返回3.  </span></span><br><span class="line"><span class="comment">#domain: 协议族或者协议域，通常来说会有3个选择，AF_UNIX (unix 协议域)、AF_INET(IPV4 协议)、AF_INET6(IPV6 协议)... </span></span><br><span class="line"><span class="comment">#type:  socket 类型，也就是我们所熟知的TCP,UDP 协议，SOCK_STREAM(流失数据协议，即TCP)、SOCK_DGRAM(数据报协议，即UDP)</span></span><br><span class="line"><span class="comment">#int listenfd = socket(AF_INET,SOCK_STREAM,0);</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><strong>Bind</strong> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"> int <span class="built_in">bind</span>(int sockfd , const struct sockaddr *addr,socketlen_t addrlen);</span><br><span class="line"><span class="comment">#bind 函数系统调用将创建的socket 绑定到一个地址和一个端口上</span></span><br><span class="line"><span class="comment">#sockfd: socket() 函数返回的套接字描述符</span></span><br><span class="line"><span class="comment">#addr : 指向socket 地址结构的一个指针，要么是IPV4地址，要么是IPV6地址 </span></span><br><span class="line">struct&#123;</span><br><span class="line">	sa_family_t sin_family;</span><br><span class="line">    char sa_data[14];</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#注意：sockaddr 的问题就是把IP 与端口混在了一起，所以大部分情况下会使用sockaddr_in  </span></span><br><span class="line">struct &#123;</span><br><span class="line">	sa_family  sin_family;</span><br><span class="line">    uint16_t   sin_port;</span><br><span class="line">    struct in_addr   sin_addr;</span><br><span class="line">    char sin_zero[8];</span><br><span class="line">&#125;</span><br><span class="line">struct sockaddr_in addr;</span><br><span class="line">memset(&amp;addr,0sizeof(addr));</span><br><span class="line">addr.sin_family = AF_INET;</span><br><span class="line">addr.sin_port = htons(3000);//将端口号转换为网络字节序 </span><br><span class="line">addr.sin_addr.s_addr = INADDR_ANY//绑定本机任意IP 地址，通常为0.0.0.0</span><br></pre></td></tr></table></figure>
+<h3 id="TIME-WAIT"><a href="#TIME-WAIT" class="headerlink" title="TIME_WAIT"></a>TIME_WAIT</h3>我们先来看一下TCP CLOSE网络状态图：<br><img src="/success/images/pasted-40.png" alt="upload successful"> 该图<font size=3>我们只关注TIME_WAIT 状态，在TCP 4次挥手过程中，第一个FIN,和最后一个ACK 均由主动断开方发送，并且，TIME_WAIT 状态也只会出现在主动断开方。<br>为什么会有time_wait 状态呢？<br>time_wait 状态的作用就是为了确保链接能给被正常的断开，因为最后一个ACK 包可能会丢失，那么此时需要主动断开方重传该ACK 包，并且，确保老的重复报文在网络中过期失效。<br>time_wait 通常会等待2ML 的时间，MSL 为报文的最大生存时间，Linux 系统下默认为60s,所以TIME_WAIT 默认为 120s的时间。也就是说，如果server 端重启的话，仍然可能会存在原来的IP+port 的链接存在，那么重启后再次进行bind 将失败，会提示，”address already in used”</font><h5 id="SO-REUSEADDR"><a href="#SO-REUSEADDR" class="headerlink" title="SO_REUSEADDR"></a>SO_REUSEADDR</h5><font size=3>为了能够重用端口，我们在创建的socket 在bind 地址之前，应该为其添加 so_reuseaddr 选型，以重用端口。该选型可以告诉内核，如果当前端口正在被使用，但是TCP状态处于 TIME_WAIT 的话，允许应用程序重用该端口。但是如果端口正则被使用且TCP 状态为其他状态时，仍然返回错误。表明该端口已经被使用。</font> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int reuse_addr = 1;</span><br><span class="line">setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,(CONST void *)&amp;reuse_addr,sizeof(int));</span><br></pre></td></tr></table></figure>
+<h3 id="listen"><a href="#listen" class="headerlink" title="listen"></a>listen</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int listen(int sockfd,int backlog);</span><br><span class="line"><span class="comment">#listen 系统调用将文件描述符sockfd 所引用的socket 标记为被动，表示开始监听某一个端口。</span></span><br></pre></td></tr></table></figure>
+我们先来看一下tcp 链接的状态图：</li>
+</ul>
+<p><img src="/success/images/pasted-41.png" alt="upload successful"><br><font size=3>这是TCP 三次握手的示意图，通常来说，都是由客户端主动发起。当服务端收到SYN包以后，那么链接状态就有Listen 转换为syn_recv,这个状态表示服务端三次握手还没有完成，所以成为“半连接”，只有当再次收到客户端发来的ACK 确认以后，该链接才会syn_recv 状态转换为established 状态，表明链接已完全建立，双方均可收发数据。</font></p>
+<ul>
+<li>监听队列<br><font size=3>对于服务端来说，不管是半连接还是已建立的链接，都需要保存在内存中，内核使用来个队列来进行存储，分别为未完成链接队列，和已完成链接队列。 </font> </li>
+</ul>
+<p><img src="/success/images/pasted-42.png" alt="upload successful"><br><font size=3>当半连接收到了ACK 确认包以后，内核将该链接从未完成链接队列移入至已完成链接队列汇总，在以往，backlog 参数的含义表示已经完成链接队列大小+ 未完成链接队列的大小的最大值。但是后来该参数仅表示已经完成链接队列的最大长度。将 backlog 的含义定义为“已完成链接的最大长度” 可以在一定程度上防止syn 泛洪攻击，但是不能从根本上解决这个问题。</font> </p>
+<h3 id="accept"><a href="#accept" class="headerlink" title="accept"></a>accept</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int accept(int sockfd,struct sockaddr *addr,socklen_t *addrlen) </span><br><span class="line"><span class="comment">#accept 系统调用将返回一个全新的socket 文件描述符，用于表示与通信的具体客户端，客户端IP 地址等信息通过addr 以及addrlen 参数写入。</span></span><br></pre></td></tr></table></figure>
+<p><font size=3>accept 的本质就是从已完成链接队列的头部取出一个链接返回应用程序，那么如果已完成链接队列中没有任何数据，并且socket 被设置为阻塞的话，accept 调用将一直阻塞。所以accept 返回一个新的描述符也就不那么令人惊讶了，通过socket 系统调用所创建的socket 描述符主要的目的就是为了监听端口，而通过accept 获得的socket 描述符才是和客户端通信的媒介。</font> </p>
+<h3 id="TCP-流式协议"><a href="#TCP-流式协议" class="headerlink" title="TCP 流式协议"></a>TCP 流式协议</h3><p><font size=3>首先TCP 大家都知道是可靠消息传输协议，也就是说，内核实现的TCP 协议将保证将一个tcp 包发送到另一端，拥塞控制也就是为了实现可靠传输协议中重要的一环，因此，tcp 中的发送缓存区和接受缓存区就成为了一种手段。</font></p>
+<p><img src="/success/images/pasted-45.png" alt="upload successful"><br><font size=3>在一般的Linux 操作系统下，发送缓存区和接受缓存区的大小默认为208K,也就是说，假如A 不从缓存区读取任何数据，那么数据将会在接收缓存区持续堆积，直到缓存满。<br>数据在网络中采用的是二进制形式进行传输的，也就是说接收缓存区的内容其实也就是二进制，并且数据将会按照先后顺序堆在接收缓存区，就会出现粘包问题，怎么解决粘包问题呢，其实也很简单就是通过自定一个协议，把包长定义好以后，通过 包头+包体的方式来解决。其中包头为固定长度。</font>  </p>
+<p><img src="/success/images/pasted-46.png" alt="upload successful">  </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/success/2021/07/09/%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/" rel="prev" title="网络分层">
+      <i class="fa fa-chevron-left"></i> 网络分层
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSocket%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是Socket？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#socket-%E5%9F%BA%E6%9C%AC%E7%BC%96%E7%A8%8B%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">socket 基本编程流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TIME-WAIT"><span class="nav-number"></span> <span class="nav-text">TIME_WAIT</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#SO-REUSEADDR"><span class="nav-number">0.1.</span> <span class="nav-text">SO_REUSEADDR</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#listen"><span class="nav-number"></span> <span class="nav-text">listen</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#accept"><span class="nav-number"></span> <span class="nav-text">accept</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP-%E6%B5%81%E5%BC%8F%E5%8D%8F%E8%AE%AE"><span class="nav-number"></span> <span class="nav-text">TCP 流式协议</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Alex"
+      src="/success/images/android-chrome-512x512.png">
+  <p class="site-author-name" itemprop="name">Alex</p>
+  <div class="site-description" itemprop="description">青青子衿，悠悠我心</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/success/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Alex</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">16k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">15 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/success/lib/anime.min.js"></script>
+  <script src="/success/lib/velocity/velocity.min.js"></script>
+  <script src="/success/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/success/js/utils.js"></script>
+
+<script src="/success/js/motion.js"></script>
+
+
+<script src="/success/js/schemes/pisces.js"></script>
+
+
+<script src="/success/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
