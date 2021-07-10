@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/success/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/success/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/success/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/success/images/safari-pinned-tab.svg" color="#222">
+
+<link rel="stylesheet" href="/success/css/main.css">
+
+
+<link rel="stylesheet" href="/success/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"libibin.github.io","root":"/success/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="基本概念了解epoll 之前先要了解 io 多路复用：是一个通信和计算机网络领域的专业术语，在没有歧义的情况下，“多路复用”也可被称为“复用”。多路复用通常表示在一个信道上传输多路信号或数据流的过程和技术。因为多路复用能够将多个低速信道集成到一个高速信道进行传输，从而有效地利用了高速信道。通过使用多路复用，通信运营商可以避免维护多条线路，从而有效地节约运营成本[1].epoll 允许在多个非阻塞的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="epoll 详解">
+<meta property="og:url" content="https://libibin.github.io/success/2021/07/10/epoll-%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="梦回唐朝">
+<meta property="og:description" content="基本概念了解epoll 之前先要了解 io 多路复用：是一个通信和计算机网络领域的专业术语，在没有歧义的情况下，“多路复用”也可被称为“复用”。多路复用通常表示在一个信道上传输多路信号或数据流的过程和技术。因为多路复用能够将多个低速信道集成到一个高速信道进行传输，从而有效地利用了高速信道。通过使用多路复用，通信运营商可以避免维护多条线路，从而有效地节约运营成本[1].epoll 允许在多个非阻塞的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-47.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-51.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-50.png">
+<meta property="article:published_time" content="2021-07-10T10:07:11.000Z">
+<meta property="article:modified_time" content="2021-07-10T11:41:29.082Z">
+<meta property="article:author" content="Alex">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://libibin.github.io/success/images/pasted-47.png">
+
+<link rel="canonical" href="https://libibin.github.io/success/2021/07/10/epoll-%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>epoll 详解 | 梦回唐朝</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/success/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">梦回唐朝</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">technology</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/success/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/success/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/success/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/success/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/10/epoll-%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          epoll 详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-10 18:07:11 / 修改时间：19:41:29" itemprop="dateCreated datePublished" datetime="2021-07-10T18:07:11+08:00">2021-07-10</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p><font size=3>了解epoll 之前先要了解 io 多路复用：是一个通信和计算机网络领域的专业术语，在没有歧义的情况下，“多路复用”也可被称为“复用”。多路复用通常表示在一个信道上传输多路信号或数据流的过程和技术。因为多路复用能够将多个低速信道集成到一个高速信道进行传输，从而有效地利用了高速信道。通过使用多路复用，通信运营商可以避免维护多条线路，从而有效地节约运营成本[1].<br>epoll 允许在多个非阻塞的socket 描述符上等待可读、可写事件，本质上是一个事件驱动模型。简单来说，假如我们当前的server 有 10万个tcp链接，在这些TCP 链接能够读、写数据的链接并不是10万，可能只有5000，或者更少，这是因为用户不可能实时活跃。如果我们能够直接找出这5000 个活跃的链接进行处理的话，那么系统的效率将会得到巨大的提升，epoll 的本质作用就是这样。</font>   </p>
+<span id="more"></span>
+<h3 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h3><p>epoll 是在 linux 2.6.8 加入内核中的。  </p>
+<ul>
+<li><strong>epoll 的创建</strong>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">int epoll_create(int size);</span><br><span class="line"><span class="comment">#size 可不传可，随便传入一个值即可。</span></span><br><span class="line">该函数返回的是一个epoll 句柄，把它当做是我们创建的epoll 实例ID 即可。</span><br></pre></td></tr></table></figure>
+<font size=3>epoll_create 系统调用将创建一个epoll 对象，该对象有俩个最为核心的结构体成员：红黑树，双向链表，epoll 对象中会保存RBtree 的root 节点，以及双向链表的Head节点，初始化时，俩者均为Null.  </font></li>
+</ul>
+<p><img src="/success/images/pasted-47.png" alt="upload successful"><br><font size=3>其中 rbtree 的节点就表示一个个的事件，而双向链表的节点则表示已经就绪的事件。 </font> </p>
+<ul>
+<li><strong>epoll_ctl</strong> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">int epoll_ctl(int epfd, int op,int fd ,struct epoll_event *event);</span><br><span class="line"><span class="comment">#系统调用epoll_ctl 能够修改由文件描述符epfd 所代表的epoll 实例的兴趣链表，更近一步的，epoll_ctl 其实就是对epoll 实例中的rbtree 进行节点的添加、修改删除。</span></span><br><span class="line"><span class="comment">#epfd 该参数指定我们要操作那个epoll 实例，也就是epoll_cteate 的返回值。 </span></span><br><span class="line"><span class="comment">#op 指明我们要对epoll 实例做何种操作，添加、删除、更新。EPOLL_CTL_ADD：将文件描述符FD 添加至epoll 实例中，这里的fd 大部分情况下都是socket 描述符。本质上就是在RBtree 中新增一个节点，其中key 为我们指定的描述符fd,value 则是一个名为epitem 的对象。除此以外，epoll 最为精髓的地方就在于此时会添加等待事件到socket 的等待队列中，并设置回调函数为ep_poll_callback.当socket 中有对应事件发生时，OS 将调用该回调函数，而这个回调函数所做的事情，其实就是将rbtree 中的节点扔到rdllist 就绪队列中，表示事件已经就绪。因此我们可以看到epoll 的本质还是回调，并且由于在socket 实现代码中添加对应的入口，所以epoll 的移植性不高。</span></span><br><span class="line">EPOLL_CTL_MOD:修改描述符fd 上设定的事件。</span><br><span class="line">EPOLL_CTL_DEL:删除fd 事件 </span><br><span class="line"><span class="comment"># fd socket 文件描述符，也可以是posix 消息队列、inotify 实例，管道，或者FIFO 描述符，唯独不能是普通文件或者目录的文件描述符。因为在Linux 看到，相比与socket 、命名管道，文件I/O 是“快速i/o”,要么成功，要么失败，不可能永久堵塞。</span></span><br></pre></td></tr></table></figure></li>
+<li><strong>epoll_wait</strong>  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int epoll_wait(int epfd,struct epoll_event *evlist,int max events,int timeout);</span><br><span class="line"><span class="comment">#epoll_wait 返回epoll 实例中处于就绪的文件描述符信息，单个epoll_wait 调用能返回多个就绪态，文件描述符的信息，这些描述符将被保存到形参 evlist 中，也就是说，evlist 应该是一个数组。 epoll 实例中的rdllist 保存了已经就绪的事件，或者说可读，可写的文件描述符。那么epoll_wait 做的事情就是将双向链表中的节点复制到用户提供的数组中，并将已复制的节点从双向链表中移除。</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><img src="/success/images/pasted-51.png" alt="upload successful"><br><font size=3>虽然rdllist 有5个已经就绪的节点，但是evlist 只有4个位置，所以只能移动4个节点出去，rdllist 中的内容由内核进行维护。<br>epoll_wait 调用将返回已就绪的文件描述符个数，其值可能会小于maxevents,但一定不会大于它。maxevents 则表示我们一次epoll_wait 调用最多从rdllist 复制多少个节点到evlist中 。</font></p>
+<h3 id="节点详解"><a href="#节点详解" class="headerlink" title="节点详解"></a>节点详解</h3><p><font size=3>epoll 实例中有一颗RBtree 保存全部的事件，还有一个双链来保存就绪的事件，在画图的时候将其分开了，其实它们是共享节点的。也就是说，对于节点epi 来说，它有可能既是RBtree 上的节点，也有可能是rdllist 中的节点。</font>  </p>
+<p><img src="/success/images/pasted-50.png" alt="upload successful"><br><font size=3>从图中我们可以看到 epitem 即是红黑树的节点同时也是双链的节点。这样一来，我们既能通过fd 利用红黑树的特性在o(log n)的时间复杂度内找到对应的事件，同时也能在O(n) 的时间复杂度内找到所有已准备就绪的事件。同时我们并没有使用额外的空间来存储已就绪的事件。</font></p>
+<h3 id="epoll-event"><a href="#epoll-event" class="headerlink" title="epoll_event"></a>epoll_event</h3><ul>
+<li><strong>作用</strong><br><font size=3>在epoll_ct 和 epoll_wait 这俩个系统调用中均需要使用epoll_event这一结构体，该结构体中只有来个成员变量，但是却是epoll 中最为核心的俩个成员变量</font><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">strct epoll_event&#123;</span><br><span class="line">	uint32_t events;</span><br><span class="line">    epoll_data_t data;</span><br><span class="line">&#125;</span><br><span class="line">typedef union epoll_data&#123;</span><br><span class="line">	void *ptr;</span><br><span class="line">    int fd;</span><br><span class="line">    uint32_t u32;</span><br><span class="line">    uint64_t u64;</span><br><span class="line">&#125;epoll_data_t;</span><br><span class="line"><span class="comment">#其中events 为位掩码，可以将多个epoll 事件进行按位（|）,data 则是系统为用户所预留的一个位置，允许用户自定义一些数据。</span></span><br><span class="line"><span class="comment">#events:  </span></span><br><span class="line">1.EPLLIN 可读事件，用于读取非高优先级的数据</span><br><span class="line">2. EPOLLRDHUP 对端socket 关闭，epollrdhup 是判断对端socket 是否关闭的首要标志位。</span><br><span class="line">3. EPOLLOUT 可写事件</span><br><span class="line">4. EPOLLLET 边缘触发通知，若未指定该flags.则默认为水平触发</span><br><span class="line">5. EPOLLERR 错误</span><br><span class="line">6. EPOLLHUP 挂断，和 EPOLLERR  看做是有错误发生即可。</span><br><span class="line">epoll_data_t 可以看到它其实是一个联合结构体，系统其实也没有给出太多的选择，要么是一个指针，要么就是一个文件描述符，不过在绝大多数情况下，我们会给该成员变量一个指针，也就是Ptr.</span><br></pre></td></tr></table></figure>
+<font size=3>通常而言，在一般的webserver 开发过程中，我们不仅仅要保存一个socket fd,还需要保存该socket fd 相关的信息，包括tcp 链接的地址信息，写入数据信息，读取数据信息，因此我们会将与该socket fd 以及附加的信息保存在内存中，通过指针进行获取，那么 event.data.ptr 即可传入该指针。Nginx 就是这么用的。</font> <h3 id="epoll-中的触发模式"><a href="#epoll-中的触发模式" class="headerlink" title="epoll 中的触发模式"></a>epoll 中的触发模式</h3></li>
+<li><strong>边缘触发 （ET . Edge Trigger）</strong><br><font size=3>边缘触发的意思就是当可读、可写事件发生时，内核只会通知一次，后续不在通知。<br>我们以读取recv 为例来说明一下什么是边缘触发：<br>假设我们在读取接收缓存区数据时，每次读取2个字节，并且我们假设接收到的任何一个TCP 包数据均大于20字节。当有新的TCP 包进入接收缓存区的时候，内核就会将epitem 移入双链中并解除epoll_wait 的阻塞。我们一般把这个过程称之为通知。<br>当我们使用recv 仅接收2个字节之后，位于双链表中的epitem 将会被移除，直到下一个TCP 包到达。如果没有下一个包，那么我们将永远都不会获得剩下的18个字节数据。<br>所以，在边缘触发模式下，我们在处理可读事件时，必须要尽可能多的读取缓存区中的数据，直到没有其他数据为止。同时，也正因为内核仅通知一次的特性，使得边缘触发模式的执行效率非常高。</font></li>
+<li><strong>水平触发（LT. Level Trigger）</strong><br><font size=3>只要有可读、可写事件发生，并且应用程序没有处理时，那么就会一直在双链表中，还以上边的例子来说明，recv 读取了2个字节之后还剩下18个字节，此时该tcp 链接依然是可读的。所以下一次epoll_wait 也会返回该event，应用程序可以继续读取剩下的字节。<br>正因为内核会多次的同一个事件重复通知，所以水平触发又称慢速模式。效率要比边缘触发模式低。但是更为稳妥。OS 会为我们做兜底。</font></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/success/2021/07/09/Socket-%E8%AF%A6%E8%A7%A3/" rel="prev" title="Socket 编程">
+      <i class="fa fa-chevron-left"></i> Socket 编程
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll"><span class="nav-number"></span> <span class="nav-text">epoll</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E8%AF%A6%E8%A7%A3"><span class="nav-number"></span> <span class="nav-text">节点详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll-event"><span class="nav-number"></span> <span class="nav-text">epoll_event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll-%E4%B8%AD%E7%9A%84%E8%A7%A6%E5%8F%91%E6%A8%A1%E5%BC%8F"><span class="nav-number"></span> <span class="nav-text">epoll 中的触发模式</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Alex"
+      src="/success/images/android-chrome-512x512.png">
+  <p class="site-author-name" itemprop="name">Alex</p>
+  <div class="site-description" itemprop="description">青青子衿，悠悠我心</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/success/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="sidebar-button motion-element"><i class="fa fa-comment"></i>
+    Chat
+  </a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Alex</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">20k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">18 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/success/lib/anime.min.js"></script>
+  <script src="/success/lib/velocity/velocity.min.js"></script>
+  <script src="/success/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/success/js/utils.js"></script>
+
+<script src="/success/js/motion.js"></script>
+
+
+<script src="/success/js/schemes/pisces.js"></script>
+
+
+<script src="/success/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
