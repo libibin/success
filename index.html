@@ -158,6 +158,406 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/Go-Channel/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/success/2021/07/12/Go-Channel/" class="post-title-link" itemprop="url">Go Channel</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-12 14:59:07 / 修改时间：15:08:12" itemprop="dateCreated datePublished" datetime="2021-07-12T14:59:07+08:00">2021-07-12</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>338</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="go-channel-实现"><a href="#go-channel-实现" class="headerlink" title="go channel 实现"></a>go channel 实现</h3><font size=3>
+channel 本质上就是一个环形队列，使用环形队列而不是双向链表实现的原因在于，channel 的大小是一个固定的，初始化时即能确定大小，环形队列无需频繁的申请和释放队列节点内存。  
+  另外需要注意的是recvq 和 sendq 这俩个等待队列是严格FIFO 的，当多个goroutine 等待同一个channel时，会按先后顺序进行排队。  
+  我第一眼看到channel 的时候就觉得它是一个阻塞队列，认为和使用pthread_cond_wait/pthread_cond_signal 所实现的阻塞队列没什么太大的区别。从hchan 的实现来看，原理也确实差不都一样，不过hchan 的等待队列是在用户空间实现的，并且channel 支持容量为0 的 unbuffered channel.    
+  
+<p>  <img src="/success/images/pasted-71.png" alt="upload successful"><br></font></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/Go-GC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/success/2021/07/12/Go-GC/" class="post-title-link" itemprop="url">Go GC</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-12 14:12:06 / 修改时间：14:55:36" itemprop="dateCreated datePublished" datetime="2021-07-12T14:12:06+08:00">2021-07-12</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><font size=3>
+go 所实现的GC 方式为标记-清除，没有使用引用计数以及分带回收，并且也没有对回收的对象进行内存整理，因为GO 使用的是基于，tcmalloc 的内存分配算法，对对象镜像整理不会带来实质性的性能提升。</font> 
+ 
+<p> <img src="/success/images/pasted-67.png" alt="upload successful"><br> <font size=3> 标记-清除见得来说就是从gc root 开始，逐一向下遍历，从gc root 到当前对象存在可到路径时，认为对象存活。不存在可达路劲时，那么该对象应该被标记为可回收，后续对该对象所在堆内存进行回收，gc root 主要包含了编译器确定的全局变量，goroutine 执行栈，以及寄存器锁保存的指针。</font></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/success/2021/07/12/Go-GC/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/GO-GMP-%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/success/2021/07/12/GO-GMP-%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">GO  GMP 模型</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-12 13:11:40 / 修改时间：14:07:45" itemprop="dateCreated datePublished" datetime="2021-07-12T13:11:40+08:00">2021-07-12</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p><font size=3>M: Machine,goroutine 实际运行的载体，一个M 表示一个内核的线程，有时也叫它工作线程。每一个M 都是勤劳的工作者，不仅仅只是运行现有的任务，还会主动地到其他各个地方，寻找可运行的G，尽可能地不让自己闲下来。<br>P: Processor,简单来说就是管理G 对象和为其运行提供“上下文”，其内部包含来个对象，一个是可运行的G 队列，另一个则是自由G列表。。<br>G: goroutine ,对一段需要并发执行代码的封装。<br><img src="/success/images/pasted-62.png" alt="upload successful"><br>  </font><br>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/success/2021/07/12/GO-GMP-%E6%A8%A1%E5%9E%8B/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/https/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/success/2021/07/12/https/" class="post-title-link" itemprop="url">https</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-12 12:37:48 / 修改时间：13:02:03" itemprop="dateCreated datePublished" datetime="2021-07-12T12:37:48+08:00">2021-07-12</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="什么是HTTPS？"><a href="#什么是HTTPS？" class="headerlink" title="什么是HTTPS？"></a>什么是HTTPS？</h3><p><font size=3>安全超文本传输​​协议( HTTPS ) 是超文本传输​​协议(HTTP)的扩展。它用于通过计算机网络进行安全通信，并在 Internet 上广泛使用。[1] [2]在 HTTPS 中，通信协议使用传输层安全性(TLS) 或以前的安全套接字层 (SSL) 进行加密。因此，该协议也被称为基于 TLS 的 HTTP，[3]或基于 SSL 的 HTTP。</p>
+<p>HTTPS 的主要动机是对访问网站的身份验证，以及在传输过程中保护交换数据的隐私和完整性。它可以防止中间人攻击，客户端和服务器之间通信的双向加密可以防止通信被窃听和篡改。[4] [5] HTTPS 的认证方面需要受信任的第三方来签署服务器端数字证书. 这在历史上是一项昂贵的操作，这意味着完全经过身份验证的 HTTPS 连接通常只能在万维网上的安全支付交易服务和其他安全企业信息系统中找到。2016 年，电子前沿基金会在网络浏览器开发人员的支持下发起了一项活动，使该协议变得更加流行。[6] HTTPS 现在比最初的非安全 HTTP 被网络用户更频繁地使用，主要是为了保护所有类型网站上的页面真实性；安全帐户；并保持用户通信、身份和网页浏览的私密性。[7]</font></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/success/2021/07/12/https/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/Linux-0-%E6%8B%B7%E8%B4%9D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
+      <meta itemprop="name" content="Alex">
+      <meta itemprop="description" content="青青子衿，悠悠我心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="梦回唐朝">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/success/2021/07/12/Linux-0-%E6%8B%B7%E8%B4%9D/" class="post-title-link" itemprop="url">Linux  0 拷贝</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-12 12:15:38 / 修改时间：12:32:25" itemprop="dateCreated datePublished" datetime="2021-07-12T12:15:38+08:00">2021-07-12</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>636</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h3><p><font size=3>在Web 服务中，经常需要将硬盘中的文件原封不动地通过已链接的套接字发送出去，典型的应用就是图片，文档等数据的发送，其中一种处理方法就是循环读取文件内容，并将读取的内容发送至socket </font></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> ((n = <span class="built_in">read</span>(disfilefd,buf,BUF_SIZE)) &gt; 0) &#123;</span><br><span class="line">	write(socketfd,buf , n)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><font size=3>上述方式虽然仅有几行代码，但是内部却涉及了多次用户态与内核态的切换，以及数据在用户空间和内核空间的拷贝，因此，系统调用sendfile()被涉及用来取出这些无用的动作，可将硬盘文件直接传输至套接字上。<br><img src="/success/images/pasted-59.png" alt="upload successful">  </p>
+<ul>
+<li><strong>sendfile()系统调用</strong><br>sendfile 系统调用容许将磁盘文件内容直接发送给socket，而不必进行CPU 状态切换。</font><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ssize_t sendfile(int out_fd,in_fd,off_t *offset,size_t count);</span><br><span class="line"><span class="comment">#成功时将返回传输的数据量，失败则返回-1</span></span><br><span class="line"><span class="comment">#参数解释 out_fd:out_fd 必须指向一个套接字，不能是普通文件或者管道。在Linux 2.4 之前,out_fd 允许指向文件，但是在后续的版本中被移除。</span></span><br><span class="line">in_fd： in_fd 所指向的文件必须能够进行mmap() 操作，通常是文件，但不可以是套接字。</span><br><span class="line">offset_t : 文件偏移量，需要注意的是这里传递的是个指针，也就意味着当sendfile 调用结束时，将会把新的文件偏移量结果写入至给指针中，sendfile 调用并不会改变文件的偏移量。</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/11/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -183,7 +583,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-07-11 10:38:17 / 修改时间：13:29:48" itemprop="dateCreated datePublished" datetime="2021-07-11T10:38:17+08:00">2021-07-11</time>
+              <time title="创建时间：2021-07-11 10:38:17 / 修改时间：22:25:59" itemprop="dateCreated datePublished" datetime="2021-07-11T10:38:17+08:00">2021-07-11</time>
             </span>
 
           <br>
@@ -556,436 +956,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/08/%E8%AE%B0%E4%B8%80%E6%AC%A1GO-%E5%8D%A1%E6%AD%BB%E8%B0%83%E8%AF%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
-      <meta itemprop="name" content="Alex">
-      <meta itemprop="description" content="青青子衿，悠悠我心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="梦回唐朝">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/success/2021/07/08/%E8%AE%B0%E4%B8%80%E6%AC%A1GO-%E5%8D%A1%E6%AD%BB%E8%B0%83%E8%AF%95/" class="post-title-link" itemprop="url">GDB 调试GO </a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-08 08:50:39" itemprop="dateCreated datePublished" datetime="2021-07-08T08:50:39+08:00">2021-07-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-09 18:01:34" itemprop="dateModified" datetime="2021-07-09T18:01:34+08:00">2021-07-09</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h5 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h5><p><font size=3>对于后端的同学来说，一般在微服务的架构中，通过日志监控系统来查找问题。其实这可以解决百分之70 ~ 80 的问题。在业务层面上来说没有任何问题，但是涉及到底层的一些问题，比如程序卡死问题，这个时候通过log 日志追踪就显得不够给力了。所以我们通过另外的方式来快速定位问题。</font></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/success/2021/07/08/%E8%AE%B0%E4%B8%80%E6%AC%A1GO-%E5%8D%A1%E6%AD%BB%E8%B0%83%E8%AF%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/07/%E6%9E%B6%E6%9E%84%E4%B9%8B%E8%B7%AF%E4%B8%80/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
-      <meta itemprop="name" content="Alex">
-      <meta itemprop="description" content="青青子衿，悠悠我心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="梦回唐朝">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/success/2021/07/07/%E6%9E%B6%E6%9E%84%E4%B9%8B%E8%B7%AF%E4%B8%80/" class="post-title-link" itemprop="url">架构之路一</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-07 18:21:51" itemprop="dateCreated datePublished" datetime="2021-07-07T18:21:51+08:00">2021-07-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-09 18:01:05" itemprop="dateModified" datetime="2021-07-09T18:01:05+08:00">2021-07-09</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>966</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h6 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h6><p><font size=3>从12年到现在马上快10年了，10年一直在做业务，技术需要沉淀，需要不断的进步，基于目前对技术的一个更高追求，现在开始不断的接触架构相关的工作。我会陆陆续续将自己学习的架构知识分享出来。</font></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/success/2021/07/07/%E6%9E%B6%E6%9E%84%E4%B9%8B%E8%B7%AF%E4%B8%80/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/07/%E5%9F%BA%E4%BA%8Egithub-io-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
-      <meta itemprop="name" content="Alex">
-      <meta itemprop="description" content="青青子衿，悠悠我心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="梦回唐朝">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/success/2021/07/07/%E5%9F%BA%E4%BA%8Egithub-io-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" class="post-title-link" itemprop="url">基于github.io 博客搭建</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-07 11:50:00" itemprop="dateCreated datePublished" datetime="2021-07-07T11:50:00+08:00">2021-07-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-09 18:00:51" itemprop="dateModified" datetime="2021-07-09T18:00:51+08:00">2021-07-09</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p> <font size=3>有些同学可能一听到搭建博客就望而却步。弄个博客网站，不得有台服务器吗？不得搞数据库吗？不得注册域名吗？没事，如果都没有，那照样是能搭建一个博客的。GitHub 是个好东西啊，它提供了 GitHub Pages 帮助我们来架设一个静态网站，这就解决了服务器的问题。</font></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/success/2021/07/07/%E5%9F%BA%E4%BA%8Egithub-io-%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/07/Linux-%E5%AE%89%E8%A3%85Node-%E8%BF%87%E7%A8%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
-      <meta itemprop="name" content="Alex">
-      <meta itemprop="description" content="青青子衿，悠悠我心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="梦回唐朝">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/success/2021/07/07/Linux-%E5%AE%89%E8%A3%85Node-%E8%BF%87%E7%A8%8B/" class="post-title-link" itemprop="url">Linux 安装Node 过程</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-07 09:09:07" itemprop="dateCreated datePublished" datetime="2021-07-07T09:09:07+08:00">2021-07-07</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-09 18:00:18" itemprop="dateModified" datetime="2021-07-09T18:00:18+08:00">2021-07-09</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p> <font size=3 >因为想在服务器部署Hexo 博客系统，但是Hexo 是Node 项目所以需要在服务器上安装Node ,没想到遇到了各种各样的坑，现在将遇到的坑记录下来，以防需要的同学避免入坑。</font></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/success/2021/07/07/Linux-%E5%AE%89%E8%A3%85Node-%E8%BF%87%E7%A8%8B/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/06/mysql-%E7%B4%A2%E5%BC%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
-      <meta itemprop="name" content="Alex">
-      <meta itemprop="description" content="青青子衿，悠悠我心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="梦回唐朝">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/success/2021/07/06/mysql-%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">分布式系统概念</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-06 20:35:47" itemprop="dateCreated datePublished" datetime="2021-07-06T20:35:47+08:00">2021-07-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-09 17:49:53" itemprop="dateModified" datetime="2021-07-09T17:49:53+08:00">2021-07-09</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h4><p><font size=3>分布式系统大家都听过，但是具体的一些概念性与为什么要用可能有些人就不知道了，今天为大家简单的补充一下这方面的缺失。下面我会从数据、容错、分区、CAP、Base 等方面来带大家了解分布式系统。</font></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/success/2021/07/06/mysql-%E7%B4%A2%E5%BC%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1057,7 +1027,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/success/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">16</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1098,12 +1068,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">23k</span>
+    <span title="站点总字数">29k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">20 分钟</span>
+    <span title="站点阅读时长">26 分钟</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>

@@ -20,26 +20,24 @@
     var CONFIG = {"hostname":"libibin.github.io","root":"/success/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="起因分布式系统大家都听过，但是具体的一些概念性与为什么要用可能有些人就不知道了，今天为大家简单的补充一下这方面的缺失。下面我会从数据、容错、分区、CAP、Base 等方面来带大家了解分布式系统。">
+  <meta name="description" content="概述 go 所实现的GC 方式为标记-清除，没有使用引用计数以及分带回收，并且也没有对回收的对象进行内存整理，因为GO 使用的是基于，tcmalloc 的内存分配算法，对对象镜像整理不会带来实质性的性能提升。       标记-清除见得来说就是从gc root 开始，逐一向下遍历，从gc root 到当前对象存在可到路径时，认为对象存活。不存在可达路劲时，那么该对象应该被标记为可回收，后续对该对象">
 <meta property="og:type" content="article">
-<meta property="og:title" content="分布式系统概念">
-<meta property="og:url" content="https://libibin.github.io/success/2021/07/06/mysql-%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:title" content="Go GC">
+<meta property="og:url" content="https://libibin.github.io/success/2021/07/12/Go-GC/index.html">
 <meta property="og:site_name" content="梦回唐朝">
-<meta property="og:description" content="起因分布式系统大家都听过，但是具体的一些概念性与为什么要用可能有些人就不知道了，今天为大家简单的补充一下这方面的缺失。下面我会从数据、容错、分区、CAP、Base 等方面来带大家了解分布式系统。">
+<meta property="og:description" content="概述 go 所实现的GC 方式为标记-清除，没有使用引用计数以及分带回收，并且也没有对回收的对象进行内存整理，因为GO 使用的是基于，tcmalloc 的内存分配算法，对对象镜像整理不会带来实质性的性能提升。       标记-清除见得来说就是从gc root 开始，逐一向下遍历，从gc root 到当前对象存在可到路径时，认为对象存活。不存在可达路劲时，那么该对象应该被标记为可回收，后续对该对象">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-24.png">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-26.png">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-28.png">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-29.png">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-30.png">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-31.png">
-<meta property="article:published_time" content="2021-07-06T12:35:47.000Z">
-<meta property="article:modified_time" content="2021-07-09T09:49:53.931Z">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-67.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-68.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-69.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-70.png">
+<meta property="article:published_time" content="2021-07-12T06:12:06.000Z">
+<meta property="article:modified_time" content="2021-07-12T06:55:36.484Z">
 <meta property="article:author" content="Alex">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://libibin.github.io/success/images/pasted-24.png">
+<meta name="twitter:image" content="https://libibin.github.io/success/images/pasted-67.png">
 
-<link rel="canonical" href="https://libibin.github.io/success/2021/07/06/mysql-%E7%B4%A2%E5%BC%95/">
+<link rel="canonical" href="https://libibin.github.io/success/2021/07/12/Go-GC/">
 
 
 <script id="page-configurations">
@@ -52,7 +50,7 @@
   };
 </script>
 
-  <title>分布式系统概念 | 梦回唐朝</title>
+  <title>Go GC | 梦回唐朝</title>
   
 
 
@@ -168,7 +166,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/06/mysql-%E7%B4%A2%E5%BC%95/">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/Go-GC/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
@@ -181,7 +179,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          分布式系统概念
+          Go GC
         </h1>
 
         <div class="post-meta">
@@ -190,16 +188,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-07-06 20:35:47" itemprop="dateCreated datePublished" datetime="2021-07-06T20:35:47+08:00">2021-07-06</time>
+              <time title="创建时间：2021-07-12 14:12:06 / 修改时间：14:55:36" itemprop="dateCreated datePublished" datetime="2021-07-12T14:12:06+08:00">2021-07-12</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-09 17:49:53" itemprop="dateModified" datetime="2021-07-09T17:49:53+08:00">2021-07-09</time>
-              </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -214,7 +206,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
+              <span>1.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -233,42 +225,32 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h4 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h4><p><font size=3>分布式系统大家都听过，但是具体的一些概念性与为什么要用可能有些人就不知道了，今天为大家简单的补充一下这方面的缺失。下面我会从数据、容错、分区、CAP、Base 等方面来带大家了解分布式系统。</font></p>
+        <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><font size=3>
+go 所实现的GC 方式为标记-清除，没有使用引用计数以及分带回收，并且也没有对回收的对象进行内存整理，因为GO 使用的是基于，tcmalloc 的内存分配算法，对对象镜像整理不会带来实质性的性能提升。</font> 
+ 
+<p> <img src="/success/images/pasted-67.png" alt="upload successful"><br> <font size=3> 标记-清除见得来说就是从gc root 开始，逐一向下遍历，从gc root 到当前对象存在可到路径时，认为对象存活。不存在可达路劲时，那么该对象应该被标记为可回收，后续对该对象所在堆内存进行回收，gc root 主要包含了编译器确定的全局变量，goroutine 执行栈，以及寄存器锁保存的指针。</font></p>
 <span id="more"></span>
+<h3 id="Go-1-3-GC"><a href="#Go-1-3-GC" class="headerlink" title="Go 1.3 GC"></a>Go 1.3 GC</h3><p><font size=3>1.3 版本之前,go 使用最简单的标记 - 清除方式，也就是当需要进行GC 时，停止所有goroutine 的运行，开始进行标记，标记完了以后对需要回收的对象进行清理，事情做完了以后在恢复所有的goroutine的运行，停止所有的goroutine 运行有一个简称，stop the world,STW 很明显，这种方式的STW 时间将会很长，可能到达几百毫秒，在此期间其他goroutine 都不可运行</font></p>
+<h3 id="go-1-5"><a href="#go-1-5" class="headerlink" title="go 1.5"></a>go 1.5</h3><p><font size=3>在 go 1.5 go 引入了三色标记 + 屏障机制来优化STW 所持续的时间。<br>逻辑颜色的定义 ：<br>    1. 白色 （die)  在开始阶段，所有对象均为白色，当回收结束后，白色对象均不可达。<br>    2. 灰色 （run)  已被回收器访问到的对象，但回收器需要对其中一个或多个指针进行扫描，因为他们可能还指向白色对象。<br>    3. 黑色 （alive) 已被回收器访问到的对象，其中所有字段都已扫描，黑色对象中任何一个指针都不可能直接指向白色对象。 </p>
 <ul>
-<li><strong>数据的分布式</strong>        <ul>
-<li>单机数据服务<br><font size=3>在一个项目的初期，请求量以及存储数据容量都不多，此时一台web server + 一台DB server 是完全可以完成业务请求的。<br><img src="/success/images/pasted-24.png" alt="upload successful"><br>公司要盈利，业务要发展所以在往后，随着项目访问量逐步增多，一台web server 无法处理当前数量的请求，这个时候必须多添加一些web server.     </font><br><img src="/success/images/pasted-26.png" alt="upload successful"> </li>
-<li>多机数据服务<br><font size=3>当项目用户规模持续扩大，数据量持续增多，数据库已然成为了新的瓶颈，此时必须对数据层做相应的处理，首先进行读写分离。</font><br><img src="/success/images/pasted-28.png" alt="upload successful"><br><font size=3>但是数据量出现了爆炸式的增长，以达到单机无法处理的程度，此时必须对数据进行分片（sharding），对数据分片以后，为了应对节点的故障（网络，磁盘等），同时又需要对分片数据进行数据冗余，通常称之为副本。</font><br><img src="/success/images/pasted-29.png" alt="upload successful"> </li>
-</ul>
-</li>
-</ul>
-<p>上边通过数据的不断增加我们来做了相应的数据处理，但是系统的复杂性必定都有俩面性，所以会带来一些问题。下面我就总结一下。</p>
-<ol>
-<li><strong>网络通信</strong><br>节点和节点之间的可靠，高效通信是分布式首要解决的问题。TCP,UDP协议如何选取，选择协议后又如何构建通信协议，是使用已有的HTTP协议，还是自定义通信协议，均需要根据实际情况来进行抉择。</li>
-<li><strong>数据复制</strong><br>数据复制采用何种手段进行，日志格式如何，同步复制还是异步复制，数据副本数据如何确定，如何更快速的进行日志复制，出现延迟该如何操作，这些都是需要根据业务不同，要求不同来实时做想要的调整。</li>
-<li><strong>数据分区</strong><br>当单机无法承载完整的数据时，必然需要对数据进行分区处理，那么分区规则该如何规定，分区以后索引如何建立，新增节点后是否需要对数据进行迁移，迁移成本如何，这些都是分布式带来的问题。</li>
+<li>标记过程 <ol>
+<li>在初始化状态时，所有的对象均为白色，GC 将从根节点开始遍历，将遍历到的节点置为灰色。 </li>
+<li>然后将灰色节点所引用的白色对象置为灰色，并将原有灰色对象置为黑色。然后逐层推进的，而不是一下递归到底。 </li>
+<li>最后回收所有白色对象，一次GC。<br>为什么三色标记需要STW？<br>因为Go gc 是和其他Goroutine 并发执行的，所以依然可能存在静态条件，也就是说，即使是使用三色标记 - 清除 ，依然需要STW </li>
 </ol>
-<p>综上所述分布式的目的就是通过增加机器的方式来应对快速增长的用户量、请求量以及数据量，并且能够达到每增加一倍的节点，系统吞吐量也能够达到一倍。甚至更多，但是带来好处的同时也需要做好相应的问题处理，不然会很容易出现各种各样的问题。  </p>
-<ul>
-<li><strong>数据副本</strong><br>在分布式系统中，所有的节点，所有的数据块，其他地位都是平等的，副本是指数据的COPY，而不是主副。<br>数据分布简单来说就是一份数据被COPY 了多份，散布与不同的节点之上。<br>以内存Cpu 缓存为例，数据首先被写入内存，而后Cpu进行读取，为了加快数据的后续读取速度，cpu 将数据在自身的多级缓存（L1,L2,L3）中缓存一份，那么此时数据就有了俩份，一份存在与内存，一份存在多级缓存中。  </li>
-<li><strong>一致性</strong><br>一致性建立在副本这一概念之上，如果集群中只有一个节点，那么自然也就没有一致性问题一说了。<br>同样以内存与CPU 缓存为例，由于数据目前存有俩份，那么当更新其中一个副本数据的时候，如何使得另外一个数据副本也进行更新，这就是数据一致性问题。</li>
-<li>容错<br>以无状态的web server 为例，将其部署与多个节点之上，当其中一个节点失效时，仍然能对外提供的相应的服务。  </li>
-</ul>
-<h4 id="Cap理论"><a href="#Cap理论" class="headerlink" title="Cap理论"></a>Cap理论</h4><ul>
-<li><strong>C 一致性：</strong>数据在多个副本内保持严格的一致性，所谓严格一致性，即当数据在主节点成功修改后，于任何从节点进行数据读取时均能读取到这一修改。</li>
-<li><strong>A 可用性：</strong>每一次请求均能获取正确的响应。</li>
-<li><strong>P 分区容错性：</strong>当发生网络分区时，既因某些故障导致集群节点被割裂，仍然对外提供满足一致性和可用性的服务。<br><font size=3>对于Network Partition这件事情，我认为是无法避免的，因为没有挖不断的光纤，没有不会发错的人员。所以目前我们追求的PA，或者是PC，CAP 永远无法全部满足。</font><ul>
-<li><strong>PA</strong><br>pa 严格意义上来说，并不是舍弃了一致性，而是舍弃了强一致性，即舍去了 Linearizability 这一一致性。<br><img src="/success/images/pasted-30.png" alt="upload successful"><br><font size=3>如图所示，假设G1节点与G0节点的网络因故障断开，导致数据同步意外停止。此时G1数据内容落后与G0主节点。Pa 保证的是可用性，即不会停止整个集群的工资，而是让SLB 继续请求G1 节点数据，使用若一致性来保持集群服务的可用性。<br>的确，可以通过各种各样的监控手段以及单节点停机机制来尽可能地缩短用户读取到不一致数据的时间，但是从理论上来说，仍然不是强一致性。</font>  </li>
-<li><strong>PC</strong><br><font size=3>PC 严格意义上来说，也不是放弃了可用性，而是放弃了强可用性，既在任何时刻都能在约定的时间内返回成功的结果。<br>pc 中的C 表示 Linearizability 级别的强一致性，只要有一个节点同步出现延迟，整个集群服务均需要等待同步过程完毕，才能对外提供服务。</font><br><img src="/success/images/pasted-31.png" alt="upload successful"><br><font size=3>此时的强一致性是牺牲可用性作为代价实现的，其原因在于如果要保持强一致性，就必须等待所有节点数据同步完成，而在这个过程中，集群外提供的服务是停滞的。</font><br><font size=3><strong>简单来说，CAP 理论就是这样的一个矛盾体，为了增强集群的分区容错性，将数据复制到多个节点上，但是此时的数据复制就会变多，强一致性很难保证，如果要保持强一致性，那么更新所有的节点数据的时间就会变成，此时可用性又会降低。</strong></font>  </li>
-</ul>
 </li>
 </ul>
-<h4 id="BASE-理论"><a href="#BASE-理论" class="headerlink" title="BASE 理论"></a>BASE 理论</h4><p> <font size=3><strong>在cap 理论中，我们认为P 必须得到满足（因为分区必然存在），所以在一致性和可用性进行二选一。但是分区不会每时每次都在进行，也不是永远不会恢复。在绝大部分时刻，一致性与可用性均能得到满足</strong></font>  </p>
-<ul>
-<li><strong>Basically Available 基本可用性</strong><br><font size=3>基本可用性其实就是可用性的降级，部分用户的请求无法满足，但绝大部分的用户请求能够得到满足。<br>例如正常情况下网站P99 的响应时间为100Ms,在发送某些故障后，P99 的时间为200ms，但仍然能对外提供服务，称为基本可用性。</font>  </li>
-<li><strong>Soft State 软状态</strong><br><font size=3>允许存在数据复制的延时，在出现延时到解决延时的这一段时间内，有一个中间状态，在该状态下，数据并不是严格的一致。所以使用软状态依次表示。</font>  </li>
-<li><strong>Eventually Consistent 最终一致性</strong><br><font size=3>从软状态中恢复成完全一致的最终结果</font></li>
+<p>   <img src="/success/images/pasted-68.png" alt="upload successful"><br>    简而言之，当GC 扫描到B 对象时，ref2 已经被干掉，无法通过B 找到白色对象C ， 但是另一个goroutine 在已经被标记为黑色的A 对象中添加一个对象ref3,而ref3是不会被GC 所扫描到的，因为A 已经处理了，所以C 对象将会作为白色对象被清理，但时间上这个清理是错误的。<br> 我们简单分析一下在没有STW 的情况下为什么会出现错误清理的情况。比方说，一个白色对象挂在了黑色对象上，灰色对象在GC 时预期白色对象的链接关系丢失。 所以，我们需要一个机制来保证这俩种条件不会发送，那么我们就可以大胆的执行并发GC 了。</font></p>
+<h3 id="屏障机制"><a href="#屏障机制" class="headerlink" title="屏障机制"></a>屏障机制</h3><ul>
+<li>强三色变式<br><font size=3>从三色标记的过程中我们可以看到，黑色对象下面挂的一定是灰色对象，灰色下面挂的一定是白色对象，强三色不变规定：不允许出现黑色对象下面挂白色对象。 </font><br><img src="/success/images/pasted-69.png" alt="upload successful">  </li>
+<li>弱三色不变式<br><font size=3>黑色对象可以引用白色对象，但前提是该白色对象上游链路中存在灰色对象。 </font><br><img src="/success/images/pasted-70.png" alt="upload successful"> </li>
+<li>插入屏障 （强三色）<br><font size=3>在GC 进行时，若A对象引用B 对象，那么B对象需要被标记为灰色，那么此时就不会存在黑色对象引用白色对象的情况了，因为白色对象已经变成了灰色。插入屏障仅在堆内存中生效，栈内存仍然需要使用STW 进行二次扫描。 </font></li>
+<li>删除屏障 （弱三色）<br><font size=3>当某A 对象需要被删除时，将其标记为灰色，可以防止白色对对象丢失的情况，当时同时也可能造成对象在本轮GC 中未被回收，需要在下一轮GC 才能被回收的情况。</font></li>
 </ul>
+<h4 id="go-1-8"><a href="#go-1-8" class="headerlink" title="go 1.8"></a>go 1.8</h4><p><font size=3> 插入屏障 仅在堆内存中生效，因此栈内存在一轮扫描以后需要对栈空间进行 STW，以确保不会“误杀” 白色对象  </p>
+<p>删除屏障 回收精度会受影响，GC 开始以后，所有被删除的对象都会被标记为灰色，那么这些原本需要被回收的对只能在下次GC 开始时才会被回收。</p>
+<p>因此1.8 版本中新增了混合写屏障，主要是针对于栈空间的GC 而进行的优化。混合屏障规则 ， GC 开始时将栈上的对象进行扫描，并将可达对象全部标记为黑色。对于栈上新增的对象，若当前栈未扫描完毕，则将其置为灰色。若当前栈已经扫描完毕，则将新增的对象置为黑色。</font>  </p>
+<p><strong>总结:</strong><br>  <font size=3>go 的 GC 最早期使用的回收算法是标记- 清除算法，该算法需要在执行期间需要暂停应用程序STW ，无法满足并发程序的实时性。后面GO 的GC 转为使用三色标记清除算法，并通过混合写屏障技术保证了GO 并发执行GC 时内存中对象的三色一致性。（这里的并发指的是GC 和应用程序的goroutine 能同时执行）<br>  一次完整的垃圾回收分为四个阶段，分别是标记准备，标记，结束标记以及清理。在标记准备和标记结束阶段会需要STW，标记阶段会减少程序的性能，而清理阶段是不会对程序有影响的。</font></p>
 
     </div>
 
@@ -284,12 +266,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/success/2021/07/06/mysql/" rel="prev" title="Mysql ">
-      <i class="fa fa-chevron-left"></i> Mysql 
+    <a href="/success/2021/07/12/GO-GMP-%E6%A8%A1%E5%9E%8B/" rel="prev" title="GO  GMP 模型">
+      <i class="fa fa-chevron-left"></i> GO  GMP 模型
     </a></div>
       <div class="post-nav-item">
-    <a href="/success/2021/07/07/Linux-%E5%AE%89%E8%A3%85Node-%E8%BF%87%E7%A8%8B/" rel="next" title="Linux 安装Node 过程">
-      Linux 安装Node 过程 <i class="fa fa-chevron-right"></i>
+    <a href="/success/2021/07/12/Go-Channel/" rel="next" title="Go Channel">
+      Go Channel <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -349,7 +331,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B5%B7%E5%9B%A0"><span class="nav-number">1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cap%E7%90%86%E8%AE%BA"><span class="nav-number">2.</span> <span class="nav-text">Cap理论</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BASE-%E7%90%86%E8%AE%BA"><span class="nav-number">3.</span> <span class="nav-text">BASE 理论</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Go-1-3-GC"><span class="nav-number"></span> <span class="nav-text">Go 1.3 GC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-1-5"><span class="nav-number"></span> <span class="nav-text">go 1.5</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%8F%E9%9A%9C%E6%9C%BA%E5%88%B6"><span class="nav-number"></span> <span class="nav-text">屏障机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#go-1-8"><span class="nav-number">1.</span> <span class="nav-text">go 1.8</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
