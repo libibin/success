@@ -20,22 +20,27 @@
     var CONFIG = {"hostname":"libibin.github.io","root":"/success/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="什么是HTTPS？安全超文本传输​​协议( HTTPS ) 是超文本传输​​协议(HTTP)的扩展。它用于通过计算机网络进行安全通信，并在 Internet 上广泛使用。[1] [2]在 HTTPS 中，通信协议使用传输层安全性(TLS) 或以前的安全套接字层 (SSL) 进行加密。因此，该协议也被称为基于 TLS 的 HTTP，[3]或基于 SSL 的 HTTP。 HTTPS 的主要动机是对访问">
+  <meta name="description" content="前言cache 大家都比较熟悉，今天给大家分享一下市面上比较常用的cache Redis。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="https">
-<meta property="og:url" content="https://libibin.github.io/success/2021/07/12/https/index.html">
+<meta property="og:title" content="Redis 数据结构">
+<meta property="og:url" content="https://libibin.github.io/success/2021/07/21/Redis-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
 <meta property="og:site_name" content="梦回唐朝">
-<meta property="og:description" content="什么是HTTPS？安全超文本传输​​协议( HTTPS ) 是超文本传输​​协议(HTTP)的扩展。它用于通过计算机网络进行安全通信，并在 Internet 上广泛使用。[1] [2]在 HTTPS 中，通信协议使用传输层安全性(TLS) 或以前的安全套接字层 (SSL) 进行加密。因此，该协议也被称为基于 TLS 的 HTTP，[3]或基于 SSL 的 HTTP。 HTTPS 的主要动机是对访问">
+<meta property="og:description" content="前言cache 大家都比较熟悉，今天给大家分享一下市面上比较常用的cache Redis。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-60.png">
-<meta property="og:image" content="https://libibin.github.io/success/images/pasted-61.png">
-<meta property="article:published_time" content="2021-07-12T04:37:48.000Z">
-<meta property="article:modified_time" content="2021-07-12T05:02:03.624Z">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-76.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-77.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-78.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-79.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-80.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-81.png">
+<meta property="og:image" content="https://libibin.github.io/success/images/pasted-83.png">
+<meta property="article:published_time" content="2021-07-21T02:51:47.000Z">
+<meta property="article:modified_time" content="2021-07-21T03:50:07.119Z">
 <meta property="article:author" content="Alex">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://libibin.github.io/success/images/pasted-60.png">
+<meta name="twitter:image" content="https://libibin.github.io/success/images/pasted-76.png">
 
-<link rel="canonical" href="https://libibin.github.io/success/2021/07/12/https/">
+<link rel="canonical" href="https://libibin.github.io/success/2021/07/21/Redis-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
 
 
 <script id="page-configurations">
@@ -48,7 +53,7 @@
   };
 </script>
 
-  <title>https | 梦回唐朝</title>
+  <title>Redis 数据结构 | 梦回唐朝</title>
   
 
 
@@ -164,7 +169,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/12/https/">
+    <link itemprop="mainEntityOfPage" href="https://libibin.github.io/success/2021/07/21/Redis-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/success/images/android-chrome-512x512.png">
@@ -177,7 +182,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          https
+          Redis 数据结构
         </h1>
 
         <div class="post-meta">
@@ -188,7 +193,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-07-12 12:37:48 / 修改时间：13:02:03" itemprop="dateCreated datePublished" datetime="2021-07-12T12:37:48+08:00">2021-07-12</time>
+              <time title="创建时间：2021-07-21 10:51:47 / 修改时间：11:50:07" itemprop="dateCreated datePublished" datetime="2021-07-21T10:51:47+08:00">2021-07-21</time>
             </span>
 
           
@@ -204,7 +209,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.1k</span>
+              <span>1.5k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -223,17 +228,26 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="什么是HTTPS？"><a href="#什么是HTTPS？" class="headerlink" title="什么是HTTPS？"></a>什么是HTTPS？</h3><p><font size=3>安全超文本传输​​协议( HTTPS ) 是超文本传输​​协议(HTTP)的扩展。它用于通过计算机网络进行安全通信，并在 Internet 上广泛使用。[1] [2]在 HTTPS 中，通信协议使用传输层安全性(TLS) 或以前的安全套接字层 (SSL) 进行加密。因此，该协议也被称为基于 TLS 的 HTTP，[3]或基于 SSL 的 HTTP。</p>
-<p>HTTPS 的主要动机是对访问网站的身份验证，以及在传输过程中保护交换数据的隐私和完整性。它可以防止中间人攻击，客户端和服务器之间通信的双向加密可以防止通信被窃听和篡改。[4] [5] HTTPS 的认证方面需要受信任的第三方来签署服务器端数字证书. 这在历史上是一项昂贵的操作，这意味着完全经过身份验证的 HTTPS 连接通常只能在万维网上的安全支付交易服务和其他安全企业信息系统中找到。2016 年，电子前沿基金会在网络浏览器开发人员的支持下发起了一项活动，使该协议变得更加流行。[6] HTTPS 现在比最初的非安全 HTTP 被网络用户更频繁地使用，主要是为了保护所有类型网站上的页面真实性；安全帐户；并保持用户通信、身份和网页浏览的私密性。[7]</font></p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p><font size=3>cache 大家都比较熟悉，今天给大家分享一下市面上比较常用的cache Redis。</font></p>
 <span id="more"></span>
-<h4 id="加密方式"><a href="#加密方式" class="headerlink" title="加密方式"></a>加密方式</h4><ul>
-<li><strong>对称加密</strong><br>在对称加密算法中，加密，解密时需要的秘钥是相同的，也就是说，使用“hello word” 这句话对信息进行加密，也可以用来解密后的字符串。因此，在使用对称加密时，秘钥一定不能被别人知道，对称加密因为加密，解密逻辑比较简单，所以性能高，速度比较快。  </li>
-<li><strong>非对称加密</strong><br>在非对称加密中，加密和解密的秘钥是不同的，<strong>公钥加密的内容，只有私钥才能解开</strong> ， <strong>私钥加密的内容，只有公钥才能解开</strong> ， 也就是说如果世上只有唯一的一个人拥有某一个私钥，而你拥有对应的公钥，那么如果你可以使用公钥解开对方使用私钥加密的内容，那么对面的那个人一定就是认识的。<br>因为非对称加密比较复杂，所以其性能赶不上对称加密.  </li>
-</ul>
-<p><strong>综上所述：</strong> https 在握手阶段采用的是非对称加密，而在正式的数据交互过程中则使用对称加密提高效率。<br>下图是https TLS 握手整个流程<br><img src="/success/images/pasted-60.png" alt="upload successful"><br>tls/ssl 和TCP 属于完全不同的网络层面，tcp 属于传输层，不在乎用户发送的到底是加密数据还是非加密数据，只有应用层才会在意。<br>TLS 握手与TCP 握手<br><img src="/success/images/pasted-61.png" alt="upload successful"><br>也就是说，ssl/tls 并不是TCP 协议族的一部分，它只是为应用层数据提供加密，解密以及压缩的功能，也就是说在TLS 握手之前，必须要经过TCP 三次握手建立正常的链接，才能继续往下走。  </p>
+<h4 id="SDS"><a href="#SDS" class="headerlink" title="SDS"></a>SDS</h4><p><font size=3> SDS (Simple Daynamic string) 表示简单字符串，Redis 在原有的C 字符串上进行的一层封装。</font>  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct sdshdr &#123;</span><br><span class="line">	int len;//字符串长度</span><br><span class="line">    int free;//剩余空间</span><br><span class="line">    char buf[];//字节数组 </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#优点：1. O(1) 时间内获取到长度。2.可有效防止缓存区溢出。3.减少修改字符串带来的内存从新分配。</span></span><br><span class="line"><span class="comment">#缺点：相较于原有C 字符串，额外的多出了8字节的存储空间</span></span><br></pre></td></tr></table></figure>
+<h4 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h4><p><font size=3>redis 链表 Linux 一样都是采用的是双向链表来实现的。并没有通过单链表为了节省内存。 list 这一结构主要包含了3个成员：头指针，尾指针，以及双向链表所包含的节点数量。链表应用非常广泛，包括数量较小的列表，发布订阅，慢查询和监视器等。 </font> </p>
+<h4 id="字典"><a href="#字典" class="headerlink" title="字典"></a>字典</h4><p><font size=3>采用的是 hash 表实现，hash 冲突是通过拉链法来处理。 </font>  </p>
 <ul>
-<li>https 的优化问题<br>从上面可以看出，一个https 应用数据的发送，需要经过TCP 三次握手 + tls 四次握手才能建立起基本的链接，然后在发送数据。协议比较复杂，沟通过程太繁复，这样会导致效率问题。<br>优化TCP 三次握手，如果狠一点，可以使用基于UDP 实现QUIC，直接把三次握手省略掉。</li>
+<li><strong>渐进式 rehash</strong><br><font size=3>为什么使用 rehash?<br>大家都知道 redis 底层是 单线程+  epoll 来实现的，也就是说，发送到redis 的命令是通过串行来执行的，若采用直接扩容的方式，那么当遇到巨大的hash 表的时候，那么复制将花费很长的时间，势必会阻塞其他命令的执行，从而导致整体性能下降。 </font> </li>
+<li><strong>过程</strong><br><img src="/success/images/pasted-76.png" alt="upload successful"><br><font size=3>在渐进式 rehash 过程中，会同时存在 ht[0],ht[1] , 俩张hash 表对外提供服务。<br>当我们添加一个 Key  的时候，新的key 会存储到 ht[1] 中也就是哪个容量更大的hash 表中，当我们查找，删除一个Key 时，会在俩个表上进行，而不仅仅是对0 或者1 表中的一个操作，redis 本身的数据库也是使用hash 表实现的，所以才可以在 o(1) 时间内查找到某一个key.  </font><h4 id="跳跃表"><a href="#跳跃表" class="headerlink" title="跳跃表"></a>跳跃表</h4><font size=3>跳表是一种有序的数据结构，可以简单理解它就是一个多层链表。支持平均 logn 时间复杂度，最坏 n 的复杂度。<br>跳表是有序集合的底层数据结构，当有序结合的数据比较多的时候，redis 会使用跳表连存储。</font><br><img src="/success/images/pasted-77.png" alt="upload successful"> </li>
 </ul>
+<h4 id="整数集合"><a href="#整数集合" class="headerlink" title="整数集合"></a>整数集合</h4><p><font size=3>整数集合的底层实现为数组，并且元素在该数组中有序，无重复的排列，通过名字我们就知道它能够实现集合，并且是整数集合。<br>整数集合中保存了3种类型的整数，分别为 16位，32位，64位；这么实现的初衷还是哪个问题，就是为了节省内存，因为在某一种情况下，程序不知道用户会保存多大的整数，所以为了避免整数溢出，可能会直接使用64位来保存，如果保存都是小整数的话， 那么将大大的浪费内存。Redis 出于对intset 进行动态编码，如果当前能给用int16来保存的话，那就用int6，如果用户后续新增了一个 32 位的整数，那么redis 会对 intset 进行升级，改用 int32来保存。 </font></p>
+<h4 id="压缩列表"><a href="#压缩列表" class="headerlink" title="压缩列表"></a>压缩列表</h4><p><img src="/success/images/pasted-78.png" alt="upload successful"><br><font size=3>压缩列表  ziplist 其目的还是为了节省内存，当一个list 中只包含少量的元素的时候，并且每一个元素要么是小正数，要么是长度很小的字符串，redis 就会使用ziplist 来实现。<br>理解 ziplist 的一个关键点就在于，entry 中保存的数据大小是不固定的，也就是说，对于一个ziplist 而言，我们往里边扔 int,也可以扔 string, entry 中存的其实是数据，而非指针。<br>因此我们向ziplist 中添加，删除数据的时间复杂度为 n ,最坏的情况为 N^2 ，不过没关系，因为里边存的数据都比较小，所以不会有太大的性能问题。 </font> </p>
+<h4 id="redis-对象与-结构"><a href="#redis-对象与-结构" class="headerlink" title="redis 对象与 结构"></a>redis 对象与 结构</h4><p><font size=3>与其说redis 是一个内存数据库，倒不如说是一个 数据结构数据库。 </font> </p>
+<ul>
+<li><strong>列表对象</strong><br><img src="/success/images/pasted-79.png" alt="upload successful"><br><font size=3>虽然是 列表对象，但是我们更多是把list 当做 队列来使用。 </font> </li>
+<li><strong>hash 对象</strong><br><img src="/success/images/pasted-80.png" alt="upload successful">  </li>
+<li><strong>集合对象</strong><br><img src="/success/images/pasted-81.png" alt="upload successful">  </li>
+<li><strong>有序集合</strong><br><img src="/success/images/pasted-83.png" alt="upload successful"></li>
+</ul>
+<p><font size=3> ziplist 除了不能实现 集合以外什么都能干。</font>  </p>
 
     </div>
 
@@ -249,13 +263,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/success/2021/07/12/Linux-0-%E6%8B%B7%E8%B4%9D/" rel="prev" title="Linux  0 拷贝">
-      <i class="fa fa-chevron-left"></i> Linux  0 拷贝
+    <a href="/success/2021/07/12/Nginx/" rel="prev" title="Nginx">
+      <i class="fa fa-chevron-left"></i> Nginx
     </a></div>
-      <div class="post-nav-item">
-    <a href="/success/2021/07/12/GO-GMP-%E6%A8%A1%E5%9E%8B/" rel="next" title="GO  GMP 模型">
-      GO  GMP 模型 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -314,7 +325,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFHTTPS%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是HTTPS？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E5%AF%86%E6%96%B9%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">加密方式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SDS"><span class="nav-number">1.1.</span> <span class="nav-text">SDS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8"><span class="nav-number">1.2.</span> <span class="nav-text">链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E5%85%B8"><span class="nav-number">1.3.</span> <span class="nav-text">字典</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%B3%E8%B7%83%E8%A1%A8"><span class="nav-number">1.4.</span> <span class="nav-text">跳跃表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88"><span class="nav-number">1.5.</span> <span class="nav-text">整数集合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8"><span class="nav-number">1.6.</span> <span class="nav-text">压缩列表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#redis-%E5%AF%B9%E8%B1%A1%E4%B8%8E-%E7%BB%93%E6%9E%84"><span class="nav-number">1.7.</span> <span class="nav-text">redis 对象与 结构</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
